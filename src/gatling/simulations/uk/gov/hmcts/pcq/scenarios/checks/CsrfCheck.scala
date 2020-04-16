@@ -1,4 +1,4 @@
-package uk.gov.hmcts.perfproject.simulations.checks
+package uk.gov.hmcts.pcq.scenarios.checks
 
 import io.gatling.core.Predef._
 import io.gatling.core.check.CheckBuilder
