@@ -42,7 +42,7 @@ dependencies {
 gatling {
     toolVersion '3.1.1'
     scalaVersion '2.12.8'
-    simulations = [ 'uk.goc.hmcts.pcq.simulations.PCQ'
+    simulations = [ 'uk.gov.hmcts.pcq.simulations.PCQSimulation'
     ]
 }
 

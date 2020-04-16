@@ -1,14 +1,14 @@
 package uk.gov.hmcts.pcq.scenarios.utils
 
-object Environment {
+import io.gatling.core.Predef._
+import io.gatling.http.Predef._
 
-  import io.gatling.core.Predef._
-  import io.gatling.http.Predef._
+object Environment {
 
   val baseURL = "https://pcq.aat.platform.hmcts.net"
 
-  val minThinkTime = 1 //5
-  val maxThinkTime = 2 //10
+  val minThinkTime = 2 //5
+  val maxThinkTime = 4 //10
   val constantthinkTime = 7
   val minWaitForNextIteration = 120 //120
   val maxWaitForNextIteration = 240 //240

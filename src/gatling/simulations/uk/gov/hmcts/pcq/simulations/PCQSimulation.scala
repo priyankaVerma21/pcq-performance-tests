@@ -2,7 +2,7 @@ package uk.gov.hmcts.pcq.simulations
 
 import io.gatling.core.Predef._
 import io.gatling.core.scenario.Simulation
-import io.gatling.http.Predef._ //comment out for VM runs, only required for proxy
+import io.gatling.http.Predef._ 
 import uk.gov.hmcts.pcq.scenarios._
 import uk.gov.hmcts.pcq.scenarios.utils._
 import scala.concurrent.duration._
@@ -16,10 +16,8 @@ class PCQSimulation extends Simulation {
         .baseUrl(BaseURL)
         .doNotTrackHeader("1")
 
-    val PCQScenario = scenario("PCQ")
-        .repeat(PCQiteration) {
-            exec(pcqQuestions.pcqJourney)
-        }
+    val PCQScenario = scenario("PCQS")
+        .exec(PCQQuestions.pcqJourney)
 
     setUp(
         PCQScenario.inject(rampUsers(1) during (1 minutes))

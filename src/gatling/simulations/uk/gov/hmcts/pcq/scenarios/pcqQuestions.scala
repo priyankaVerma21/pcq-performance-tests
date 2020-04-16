@@ -2,10 +2,11 @@ package uk.gov.hmcts.pcq.scenarios
 
 import io.gatling.core.Predef._
 import io.gatling.http.Predef._
-import uk.gov.hmcts.pcq.scenarios.utils.Environment
+import uk.gov.hmcts.pcq.scenarios.utils._
 import uk.gov.hmcts.pcq.scenarios.checks._
+import scala.concurrent.duration._
 
-object pcqQuestions {
+object PCQQuestions {
 
   val BaseURL = Environment.baseURL
   val headers_0 = Environment.headers_0
@@ -15,22 +16,25 @@ object pcqQuestions {
 
   val pcqJourney = group ("PCQ_Questions") {
 
-    exec(http("request_0")
+    exec(http("PCQ01_010_HomePage")
         .get("/")
         .headers(headers_0)
-        .check(CsrfCheck.save))
+        .check(CsrfCheck.save)
+        .check(substring("Equality and diversity questions"))
+        .check(status.in(200,302)))
 
     .pause(MinThinkTime seconds, MaxThinkTime seconds)
 
-    .exec(http("request_1")
+    .exec(http("PCQ01_020_StartPage")
         .post("/start-page")
         .headers(headers_1)
         .formParam("_csrf", "${csrf}")
-        .check(CsrfCheck.save))
+        .check(CsrfCheck.save)
+        .check(substring("What is your date of birth")))
 
     .pause(MinThinkTime seconds, MaxThinkTime seconds)
 
-    .exec(http("request_2")
+    .exec(http("PCQ01_030_DateOfBirthPage")
         .post("/date-of-birth")
         .headers(headers_1)
         .formParam("_csrf", "${csrf}")
@@ -38,90 +42,100 @@ object pcqQuestions {
         .formParam("dob-day", "01")
         .formParam("dob-month", "02")
         .formParam("dob-year", "1990")
-        .check(CsrfCheck.save))
+        .check(CsrfCheck.save)
+        .check(substring("What is your main language")))
 
     .pause(MinThinkTime seconds, MaxThinkTime seconds)
 
-    .exec(http("request_3")
+    .exec(http("PCQ01_040_LanguagePage")
         .post("/language")
         .headers(headers_1)
         .formParam("_csrf", "${csrf}")
         .formParam("language_other", "")
         .formParam("language_main", "0")
-        .check(CsrfCheck.save))
+        .check(CsrfCheck.save)
+        .check(substring("What is your sex")))
 
     .pause(MinThinkTime seconds, MaxThinkTime seconds)
 
-    .exec(http("request_4")
+    .exec(http("PCQ01_050_GenderPage")
         .post("/sex")
         .headers(headers_1)
         .formParam("_csrf", "${csrf}")
         .formParam("sex", "1")
-        .check(CsrfCheck.save))
+        .check(CsrfCheck.save)
+        .check(substring("Is your gender the same as the sex you were registered at birth")))
 
     .pause(MinThinkTime seconds, MaxThinkTime seconds)
 
-    .exec(http("request_5")
+    .exec(http("PCQ01_060_GenderBirthPage")
         .post("/gender-same-as-sex")
         .headers(headers_1)
         .formParam("_csrf", "${csrf}")
         .formParam("gender_different", "1")
         .formParam("gender_other", "")
-        .check(CsrfCheck.save))
+        .check(CsrfCheck.save)
+        .check(substring("Which of the following best describes how you think of yourself")))
 
     .pause(MinThinkTime seconds, MaxThinkTime seconds)
 
-    .exec(http("request_6")
+    .exec(http("PCQ01_070_OrientationPage")
         .post("/sexual-orientation")
         .headers(headers_1)
         .formParam("_csrf", "${csrf}")
         .formParam("sexuality_other", "")
         .formParam("sexuality", "0")
-        .check(CsrfCheck.save))
+        .check(CsrfCheck.save)
+        .check(substring("Are you married or in a legally registered civil partnership")))
 
     .pause(MinThinkTime seconds, MaxThinkTime seconds)
     
-    .exec(http("request_7")
+    .exec(http("PCQ01_080_MaritalStatusPage")
         .post("/marital-status")
         .headers(headers_1)
         .formParam("_csrf", "${csrf}")
         .formParam("marriage", "1")
-        .check(CsrfCheck.save))
+        .check(CsrfCheck.save)
+        .check(substring("What is your ethnic group")))
 
     .pause(MinThinkTime seconds, MaxThinkTime seconds)
 
-    .exec(http("request_8")
+    .exec(http("PCQ01_090_EthnicityPage")
         .post("/ethnic-group")
         .headers(headers_1)
         .formParam("_csrf", "${csrf}")
         .formParam("ethnic_group", "0")
-        .check(CsrfCheck.save))
+        .check(CsrfCheck.save)
+        .check(substring("What is your religion")))
 
     .pause(MinThinkTime seconds, MaxThinkTime seconds)
 
-    .exec(http("request_9")
+    .exec(http("PCQ01_100_ReligionPage")
         .post("/religion")
         .headers(headers_1)
         .formParam("_csrf", "${csrf}")
         .formParam("religion", "1")
         .formParam("religion_other", "")
-        .check(CsrfCheck.save))
+        .check(CsrfCheck.save)
+        .check(substring("Do you have any physical or mental health conditions")))
 
     .pause(MinThinkTime seconds, MaxThinkTime seconds)
 
-    .exec(http("request_10")
+    .exec(http("PCQ01_110_DisabilitiesPage")
         .post("/disability")
         .headers(headers_1)
         .formParam("_csrf", "${csrf}")
         .formParam("disability_conditions", "2")
-        .check(CsrfCheck.save))
+        .check(CsrfCheck.save)
+        .check(substring("Are you pregnant or have you")))
 
     .pause(MinThinkTime seconds, MaxThinkTime seconds)
 
-    .exec(http("request_11")
+    .exec(http("PCQ01_120_PregnantPage")
         .post("/pregnant")
         .headers(headers_1)
         .formParam("_csrf", "${csrf}")
-        .formParam("pregnancy", "0"))
+        .formParam("pregnancy", "0")
+        .check(substring("You have answered the equality questions")))
   }
 }
