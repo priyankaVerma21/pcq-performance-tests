@@ -11,12 +11,13 @@ properties([
 
 @Library("Infrastructure") 
 
-def product = "productname"
-def component = "modulename"
+def product = "pcq"
+def component = "pcq-performance-tests"
 
 withNightlyPipeline("java", product, component) {
     // Add any environment variables for executing your performance tests for example see below
      env.TEST_URL = 'https://pcq.aat.platform.hmcts.net'
+     env.BaseURL = 'https://pcq.aat.platform.hmcts.net'
     
     enablePerformanceTest()
 
