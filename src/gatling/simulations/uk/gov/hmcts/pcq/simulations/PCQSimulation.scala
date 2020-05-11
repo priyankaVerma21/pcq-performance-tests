@@ -22,7 +22,7 @@ class PCQSimulation extends Simulation {
         }
 
     setUp(
-        PCQScenario.inject(rampUsers(180) during (50 minutes))
+        PCQScenario.inject(rampUsers(190) during (55 minutes))
     )
     .protocols(httpProtocol)
 }
