@@ -17,10 +17,12 @@ class PCQSimulation extends Simulation {
         .doNotTrackHeader("1")
 
     val PCQScenario = scenario("PCQS")
-        .exec(PCQQuestions.pcqJourney)
+        .repeat(1) {
+            exec(PCQQuestions.pcqJourney)
+        }
 
     setUp(
-        PCQScenario.inject(rampUsers(1) during (1 minutes))
+        PCQScenario.inject(rampUsers(1) during (30 minutes))
     )
     .protocols(httpProtocol)
 }
