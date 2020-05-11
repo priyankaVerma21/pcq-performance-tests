@@ -11,23 +11,19 @@ object PCQQuestions {
   val BaseURL = Environment.baseURL
   val headers_0 = Environment.headers_0
   val headers_1 = Environment.headers_1
+  val headers_2 = Environment.headers_2
   val MinThinkTime = Environment.minThinkTime
   val MaxThinkTime = Environment.maxThinkTime  
-  val feedUserData = csv("pcqID.csv").circular
+  val feedUserData = csv("pcqID.csv").queue
 
   val pcqJourney = group ("PCQ_Questions") {
 
     feed(feedUserData)
 
     .exec(http("PCQ01_001_InvokePCQ")
-        .get("/service-endpoint?serviceId=PROBATE&actor=CITIZEN&pcqId={pcqid}f&ccdCaseId=1234567890123456&partyId=test@gmail.com&returnUrl=dummy-return-url&language=en"))
-
-    .exec(http("PCQ01_010_HomePage")
-        .get("/")
-        .headers(headers_0)
-        .check(CsrfCheck.save)
-        .check(substring("Equality and diversity questions"))
-        .check(status.in(200,302)))
+        .get("/service-endpoint?serviceId=PROBATE&actor=CITIZEN&pcqId={pcqid}&ccdCaseId=1234567890123456&partyId=test@gmail.com&returnUrl=dummy-return-url&language=en")
+        .headers(headers_2)
+        .check(CsrfCheck.save))
 
     .pause(MinThinkTime seconds, MaxThinkTime seconds)
 
