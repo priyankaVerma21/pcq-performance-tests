@@ -12,11 +12,17 @@ object PCQQuestions {
   val headers_0 = Environment.headers_0
   val headers_1 = Environment.headers_1
   val MinThinkTime = Environment.minThinkTime
-  val MaxThinkTime = Environment.maxThinkTime
+  val MaxThinkTime = Environment.maxThinkTime  
+  val feedUserData = csv("pcqID.csv").circular
 
   val pcqJourney = group ("PCQ_Questions") {
 
-    exec(http("PCQ01_010_HomePage")
+    feed(feedUserData)
+
+    .exec(http("PCQ01_001_InvokePCQ")
+        .get("/service-endpoint?serviceId=PROBATE&actor=CITIZEN&pcqId={pcqid}f&ccdCaseId=1234567890123456&partyId=test@gmail.com&returnUrl=dummy-return-url&language=en"))
+
+    .exec(http("PCQ01_010_HomePage")
         .get("/")
         .headers(headers_0)
         .check(CsrfCheck.save)
