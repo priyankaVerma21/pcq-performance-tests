@@ -9,8 +9,8 @@ object Environment {
   //val baseURL = "https://pcq.aat.platform.hmcts.net"
   val baseURL = "https://pcq.perftest.platform.hmcts.net"
 
-  val minThinkTime = 5 //5
-  val maxThinkTime = 10 //10
+  val minThinkTime = 7 //5
+  val maxThinkTime = 15 //10
   val constantthinkTime = 7
   val minWaitForNextIteration = 120 //120
   val maxWaitForNextIteration = 240 //240
