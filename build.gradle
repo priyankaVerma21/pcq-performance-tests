@@ -10,6 +10,11 @@ apply plugin: 'com.github.lkishalmi.gatling'
 group 'uk.gov.hmcts.reform'
 version = '1.0'
 
+allprojects {
+    sourceCompatibility = '11'
+    targetCompatibility = '11'
+}
+
 jar {
     manifest {
         attributes 'Main-Class': 'io.gatling.app.Gatling'
