@@ -12,132 +12,210 @@ object PCQQuestions {
   val headers_0 = Environment.headers_0
   val headers_1 = Environment.headers_1
   val headers_2 = Environment.headers_2
+  val headers_4 = Environment.headers_4
+  val headers_5 = Environment.headers_5
   val MinThinkTime = Environment.minThinkTime
   val MaxThinkTime = Environment.maxThinkTime  
-  val feedUserData = csv("pcqID.csv").queue
 
   val pcqJourney = group ("PCQ_Questions") {
 
-    feed(feedUserData)
+    // ===========================================================
+    // Launch PCQ Invoke
+    // ===========================================================
+    
+    exec(http("PCQ01_010_InvokePCQ")
+        .get("/invoker")
+        .headers(headers_0)
+        .check(regex("""name="_csrf" value="(.+?)"""").saveAs("dyn_csrf")))
 
-    .exec(http("PCQ01_001_InvokePCQ")
-        .get("/service-endpoint?serviceId=PROBATE&actor=CITIZEN&pcqId={pcqid}&ccdCaseId=1234567890123456&partyId=test@gmail.com&returnUrl=dummy-return-url&language=en")
+    .pause(MinThinkTime seconds, MaxThinkTime seconds)
+
+    // ===========================================================
+    // Click - Fill
+    // ===========================================================
+
+    .exec(http("PCQ01_020_Fill")
+        .get("/invoker/formFiller?service=PROBATE&actor=APPLICANT&fields=serviceId,actor,ccdCaseId,pcqId,partyId,language,returnUrl,token")
         .headers(headers_2)
-        .check(CsrfCheck.save))
+        .check(regex("""ccdCaseId":"(.+?)",""").saveAs("dyn_ccdCaseId"))
+        .check(regex("""pcqId":"(.+?)",""").saveAs("dyn_pcqId")))
 
     .pause(MinThinkTime seconds, MaxThinkTime seconds)
 
-    .exec(http("PCQ01_020_StartPage")
+    // ===========================================================
+    // Click - Generate Token
+    // ===========================================================
+
+    .exec(http("PCQ01_030_GenerateToken")
+        .get("/invoker/genToken?serviceId=PROBATE&actor=APPLICANT&ccdCaseId=${dyn_ccdCaseId}&pcqId=${dyn_pcqId}&partyId=PROBATE_APPLICANT%40test.gov.uk&language=en&returnUrl=PROBATE_APPLICANT.test.gov.uk")
+        .headers(headers_2)
+        .check(regex("""token":"(.+?)"""").saveAs("dyn_token")))
+
+    .pause(MinThinkTime seconds, MaxThinkTime seconds)
+
+    // ===========================================================
+    // Click - Invoke
+    // ===========================================================
+
+    .exec(http("PCQ01_040_Invoke")
+        .post("/invoker")
+        .headers(headers_4)
+        .formParam("_csrf", "${dyn_csrf}")
+        .formParam("serviceId", "PROBATE")
+        .formParam("actor", "APPLICANT")
+        .formParam("ccdCaseId", "${dyn_ccdCaseId}")
+        .formParam("pcqId", "${dyn_pcqId}")
+        .formParam("partyId", "PROBATE_APPLICANT@test.gov.uk")
+        .formParam("language", "en")
+        .formParam("returnUrl", "PROBATE_APPLICANT.test.gov.uk")
+        .formParam("token", "${dyn_token}")
+        .check(regex("""name="_csrf" value="(.+?)"""").saveAs("dyn_csrf")))
+
+    .pause(MinThinkTime seconds, MaxThinkTime seconds)
+        
+    // ===========================================================
+    // Click - Continue to Questions
+    // ===========================================================
+
+    .exec(http("PCQ01_050_ContinueQuestions")
         .post("/start-page")
-        .headers(headers_1)
-        .formParam("_csrf", "${csrf}")
-        .check(CsrfCheck.save)
-        .check(substring("What is your date of birth")))
+        .headers(headers_4)
+        .formParam("_csrf", "${dyn_csrf}")
+        .check(regex("""name="_csrf" value="(.+?)"""").saveAs("dyn_csrf")))
 
     .pause(MinThinkTime seconds, MaxThinkTime seconds)
+        
+    // ===========================================================
+    // Submit - DOB
+    // ===========================================================
 
-    .exec(http("PCQ01_030_DateOfBirthPage")
+    .exec(http("PCQ01_060_DOB")
         .post("/date-of-birth")
-        .headers(headers_1)
-        .formParam("_csrf", "${csrf}")
+        .headers(headers_4)
         .formParam("dob_provided", "1")
-        .formParam("dob-day", "01")
-        .formParam("dob-month", "02")
-        .formParam("dob-year", "1990")
-        .check(CsrfCheck.save)
-        .check(substring("What is your main language")))
-
+        .formParam("dob-day", "10")
+        .formParam("dob-month", "10")
+        .formParam("dob-year", "1980")
+        .formParam("_csrf", "${dyn_csrf}")
+        .check(regex("""name="_csrf" value="(.+?)"""").saveAs("dyn_csrf")))
+    
     .pause(MinThinkTime seconds, MaxThinkTime seconds)
+        
+    // ===========================================================
+    // Submit - Language
+    // ===========================================================
 
-    .exec(http("PCQ01_040_LanguagePage")
+    .exec(http("PCQ01_070_Language")
         .post("/language")
-        .headers(headers_1)
-        .formParam("_csrf", "${csrf}")
+        .headers(headers_4)
+        .formParam("language_main", "1")
         .formParam("language_other", "")
-        .formParam("language_main", "0")
-        .check(CsrfCheck.save)
-        .check(substring("What is your sex")))
-
-    .pause(MinThinkTime seconds, MaxThinkTime seconds)
-
-    .exec(http("PCQ01_050_GenderPage")
-        .post("/sex")
-        .headers(headers_1)
-        .formParam("_csrf", "${csrf}")
-        .formParam("sex", "1")
-        .check(CsrfCheck.save)
-        .check(substring("Is your gender the same as the sex you were registered at birth")))
-
-    .pause(MinThinkTime seconds, MaxThinkTime seconds)
-
-    .exec(http("PCQ01_060_GenderBirthPage")
-        .post("/gender-same-as-sex")
-        .headers(headers_1)
-        .formParam("_csrf", "${csrf}")
-        .formParam("gender_different", "1")
-        .formParam("gender_other", "")
-        .check(CsrfCheck.save)
-        .check(substring("Which of the following best describes how you think of yourself")))
-
-    .pause(MinThinkTime seconds, MaxThinkTime seconds)
-
-    .exec(http("PCQ01_070_OrientationPage")
-        .post("/sexual-orientation")
-        .headers(headers_1)
-        .formParam("_csrf", "${csrf}")
-        .formParam("sexuality_other", "")
-        .formParam("sexuality", "0")
-        .check(CsrfCheck.save)
-        .check(substring("Are you married or in a legally registered civil partnership")))
+        .formParam("_csrf", "${dyn_csrf}")
+        .check(regex("""name="_csrf" value="(.+?)"""").saveAs("dyn_csrf")))
 
     .pause(MinThinkTime seconds, MaxThinkTime seconds)
     
-    .exec(http("PCQ01_080_MaritalStatusPage")
+    // ===========================================================
+    // Submit - Sex
+    // ===========================================================
+
+    .exec(http("PCQ01_080_Sex")
+        .post("/sex")
+        .headers(headers_4)
+        .formParam("sex", "1")
+        .formParam("_csrf", "${dyn_csrf}")
+        .check(regex("""name="_csrf" value="(.+?)"""").saveAs("dyn_csrf")))
+
+    .pause(MinThinkTime seconds, MaxThinkTime seconds)
+            
+	// ===========================================================
+    // Submit - Gender At Birth
+    // ===========================================================        
+    .exec(http("PCQ01_090_GenderAtBirth")
+        .post("/gender-same-as-sex")
+        .headers(headers_4)
+        .formParam("gender_different", "1")
+        .formParam("gender_other", "")
+        .formParam("_csrf", "${dyn_csrf}")
+        .check(regex("""name="_csrf" value="(.+?)"""").saveAs("dyn_csrf")))
+
+    .pause(MinThinkTime seconds, MaxThinkTime seconds)
+    
+    // ===========================================================
+    // Submit - Sexual Orientation
+    // ===========================================================
+
+    .exec(http("PCQ01_100_SexualOrientation")
+        .post("/sexual-orientation")
+        .headers(headers_4)
+        .formParam("sexuality", "1")
+        .formParam("sexuality_other", "")
+        .formParam("_csrf", "${dyn_csrf}")
+        .check(regex("""name="_csrf" value="(.+?)"""").saveAs("dyn_csrf")))
+
+    .pause(MinThinkTime seconds, MaxThinkTime seconds)
+    
+    // ===========================================================
+    // Submit - Marital Status
+    // ===========================================================
+
+    .exec(http("PCQ01_110_MaritalStatus")
         .post("/marital-status")
-        .headers(headers_1)
-        .formParam("_csrf", "${csrf}")
+        .headers(headers_4)
         .formParam("marriage", "1")
-        .check(CsrfCheck.save)
-        .check(substring("What is your ethnic group")))
+        .formParam("_csrf", "${dyn_csrf}")
+        .check(regex("""name="_csrf" value="(.+?)"""").saveAs("dyn_csrf")))
 
     .pause(MinThinkTime seconds, MaxThinkTime seconds)
+    
+    // ===========================================================
+    // Submit - Ethnic Group
+    // ===========================================================
 
-    .exec(http("PCQ01_090_EthnicityPage")
+    .exec(http("PCQ01_120_EthnicGroup")
         .post("/ethnic-group")
-        .headers(headers_1)
-        .formParam("_csrf", "${csrf}")
+        .headers(headers_4)
         .formParam("ethnic_group", "0")
-        .check(CsrfCheck.save)
-        .check(substring("What is your religion")))
-
+        .formParam("_csrf", "${dyn_csrf}")
+        .check(regex("""name="_csrf" value="(.+?)"""").saveAs("dyn_csrf")))
+   
     .pause(MinThinkTime seconds, MaxThinkTime seconds)
 
-    .exec(http("PCQ01_100_ReligionPage")
+    // ===========================================================
+    // Submit - Religion
+    // ===========================================================
+
+    .exec(http("PCQ01_130_Religion")
         .post("/religion")
-        .headers(headers_1)
-        .formParam("_csrf", "${csrf}")
-        .formParam("religion", "1")
+        .headers(headers_4)
         .formParam("religion_other", "")
-        .check(CsrfCheck.save)
-        .check(substring("Do you have any physical or mental health conditions")))
-
+        .formParam("religion", "0")
+        .formParam("_csrf", "${dyn_csrf}")
+        .check(regex("""name="_csrf" value="(.+?)"""").saveAs("dyn_csrf")))
+   
     .pause(MinThinkTime seconds, MaxThinkTime seconds)
 
-    .exec(http("PCQ01_110_DisabilitiesPage")
+    // ===========================================================
+    // Submit - Disability
+    // ===========================================================
+
+    .exec(http("PCQ01_140_Disability")
         .post("/disability")
-        .headers(headers_1)
-        .formParam("_csrf", "${csrf}")
-        .formParam("disability_conditions", "2")
-        .check(CsrfCheck.save)
-        .check(substring("Are you pregnant or have you")))
+        .headers(headers_4)
+        .formParam("disability_conditions", "0")
+        .formParam("_csrf", "${dyn_csrf}")
+        .check(regex("""name="_csrf" value="(.+?)"""").saveAs("dyn_csrf")))
 
     .pause(MinThinkTime seconds, MaxThinkTime seconds)
 
-    .exec(http("PCQ01_120_PregnantPage")
+    // ===========================================================
+    // Submit - Pregnant
+    // ===========================================================
+
+    .exec(http("PCQ01_150_Pregnant")
         .post("/pregnant")
-        .headers(headers_1)
-        .formParam("_csrf", "${csrf}")
+        .headers(headers_4)
         .formParam("pregnancy", "0")
-        .check(substring("You have answered the equality questions")))
+        .formParam("_csrf", "${dyn_csrf}"))
   }
 }
