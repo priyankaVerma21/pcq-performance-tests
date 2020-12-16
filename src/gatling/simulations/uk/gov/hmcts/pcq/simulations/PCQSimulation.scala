@@ -25,4 +25,5 @@ class PCQSimulation extends Simulation {
         PCQScenario.inject(rampUsers(1) during (1 minutes))
     )
     .protocols(httpProtocol)
+    .assertions(global.successfulRequests.percent.is(100))
 }
