@@ -10,10 +10,15 @@ apply plugin: 'com.github.lkishalmi.gatling'
 group 'uk.gov.hmcts.reform'
 version = '1.0'
 
-allprojects {
-    sourceCompatibility = '11'
-    targetCompatibility = '11'
-}
+java {
+     toolchain {
+         languageVersion = JavaLanguageVersion.of(17)
+     }
+ }
+
+ tasks.withType(JavaExec).configureEach {
+     javaLauncher.set(javaToolchains.launcherFor(java.toolchain))
+ }
 
 jar {
     manifest {
